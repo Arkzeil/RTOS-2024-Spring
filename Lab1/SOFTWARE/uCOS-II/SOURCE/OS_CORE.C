@@ -168,7 +168,10 @@ void  OSIntEnter (void)
 *              2) Rescheduling is prevented when the scheduler is locked (see OS_SchedLock())
 *********************************************************************************************************
 */
-
+/*Lab1*/
+char numStr[80];
+int print_y = 0;
+/*end*/
 void  OSIntExit (void)
 {
 #if OS_CRITICAL_METHOD == 3                                /* Allocate storage for CPU status register */
@@ -185,6 +188,11 @@ void  OSIntExit (void)
             OSIntExitY    = OSUnMapTbl[OSRdyGrp];          /* ... and not locked.                      */
             OSPrioHighRdy = (INT8U)((OSIntExitY << 3) + OSUnMapTbl[OSRdyTbl[OSIntExitY]]);
             if (OSPrioHighRdy != OSPrioCur) {              /* No Ctx Sw if current task is highest rdy */
+                //if (CxtSwBufIndex < MAX_BUF_AMOUNT)
+                //    sprintf(&CxtSwBuf[CxtSwBufIndex++], "%5d     %s     %2d     %2d\n", (int)OSTime, "Preempt", (int)OSPrioCur, (int)OSPrioHighRdy);
+                sprintf(numStr, "%5d     %s     %2d     %2d\n", (int)OSTime, "Preempt", (int)OSPrioCur, (int)OSPrioHighRdy);
+                PC_DispStr(0, print_y++, numStr, DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);
+
                 OSTCBHighRdy  = OSTCBPrioTbl[OSPrioHighRdy];
                 OSCtxSwCtr++;                              /* Keep track of the number of ctx switches */
                 OSIntCtxSw();                              /* Perform interrupt level ctx switch       */
@@ -370,6 +378,10 @@ void  OSTimeTick (void)
 #endif    
     OS_TCB    *ptcb;
 
+    /*Add codes for Lab1*/
+    OS_ENTER_CRITICAL();
+    OSTCBCur->compTime--;
+    OS_EXIT_CRITICAL();
 
     OSTimeTickHook();                                      /* Call user definable hook                 */
 #if OS_TIME_GET_SET_EN > 0   
@@ -394,10 +406,6 @@ void  OSTimeTick (void)
             ptcb = ptcb->OSTCBNext;                        /* Point at next TCB in TCB list            */
             OS_EXIT_CRITICAL();
         }
-        /*Add codes for Lab1*/
-        OS_ENTER_CRITICAL();
-        OSTCBCur->compTime--;
-        OS_EXIT_CRITICAL();
     }
 }
 /*$PAGE*/
@@ -873,8 +881,7 @@ static  void  OS_InitTCBList (void)
 */
 
 /*Add codes for Lab1*/
-char numStr[20];
-int8U   print_y  = 0;
+//int8U   print_y  = 0;
 
 void  OS_Sched (void)
 {
@@ -890,15 +897,20 @@ void  OS_Sched (void)
         OSPrioHighRdy = (INT8U)((y << 3) + OSUnMapTbl[OSRdyTbl[y]]);
         if (OSPrioHighRdy != OSPrioCur) {              /* No Ctx Sw if current task is highest rdy     */
             /*Add codes for Lab1*/
-            
-            sprintf(numStr, "%d", OSTime / 200);
+            //if (CxtSwBufIndex < MAX_BUF_AMOUNT)
+            //    sprintf(&CxtSwBuf[CxtSwBufIndex++], "%5d\t %s\t %2d\t %2d\n", OSTime, "Complete", OSPrioCur, OSPrioHighRdy);
+            //PC_DispStr(0, 0, CxtSwBuf[CxtSwBufIndex - 1], DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);
+            sprintf(numStr, "%5d     %s     %2d     %2d\n", (int)OSTime, "Complete", (int)OSPrioCur, (int)OSPrioHighRdy);
+            PC_DispStr(0, print_y++, numStr, DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);
+           
+            /*sprintf(numStr, "%d", OSTime / 200);
             PC_DispStr(0, y, numStr, DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);
             PC_DispStr(10, 0, "complete",
                        DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);
             sprintf(numStr, "%d", OSTCBCur->OSTCBPrio);
             PC_DispStr(20, 0, numStr, DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);
             sprintf(numStr, "%d", OSPrioHighRdy);
-            PC_DispStr(30, 0, numStr, DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);
+            PC_DispStr(30, 0, numStr, DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);*/
             /*End of added codes of Lab1*/
 
             OSTCBHighRdy = OSTCBPrioTbl[OSPrioHighRdy];

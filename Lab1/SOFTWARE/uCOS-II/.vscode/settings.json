@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "OS_CORE.C": "cpp",
-        "TEST.C": "cpp"
+        "TEST.C": "cpp",
+        "OS_TIME.C": "cpp",
+        "OS_TASK.C": "cpp"
     }
 }
