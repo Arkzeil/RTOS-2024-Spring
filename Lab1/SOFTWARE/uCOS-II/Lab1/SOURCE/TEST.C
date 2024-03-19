@@ -22,7 +22,7 @@
 #define  N_TASKS                         3       /* Number of identical tasks                          */
 /*Added Code for Lab1*/
 #define  MAX_BUF_SIZE                   50      /* Maximum buffer size for the context switch buffer*/
-#define  MAX_BUF_AMOUNT                 10       /* Maximum buffer amount for the context switch buffer*/
+#define  MAX_BUF_AMOUNT                 20       /* Maximum buffer amount for the context switch buffer*/
 #define  MAX_TASKS                       10       /* Maximum number of tasks*/
 #define MSG_QUEUE_SIZE 20
 
@@ -44,7 +44,9 @@ OS_EVENT     *RandomSem;
 
 /*Added codes for Lab1*/
 char CxtSwBuf[MAX_BUF_AMOUNT][MAX_BUF_SIZE];        /* Counter for the context switch               */
+char DLBuf[MAX_BUF_AMOUNT][MAX_BUF_SIZE];
 int CxtSwBufIndex = 0;                              /* Index for the context switch buffer               */
+int DLBufIndex = 0;
 //task_prop taskList[MAX_TASKS];                     /* List of tasks*/
 
 /*End*/
@@ -117,9 +119,9 @@ void  TaskStart (void *pdata)
 
     for (;;) {
         //TaskStartDisp();                                  /* Update the display                       */
-
+        OS_ENTER_CRITICAL();
         PrintBuffer();
-
+        OS_EXIT_CRITICAL();
         if (PC_GetKey(&key) == TRUE) {                     /* See if key has been pressed              */
             if (key == 0x1B) {                             /* Yes, see if it's the ESCAPE key          */
                 PC_DOSReturn();                            /* Return to DOS                            */
@@ -186,9 +188,9 @@ void Task(void *pdata)
     OSTCBCur->period = t->p;
     OSTCBCur->compTime = t->c;
     OS_EXIT_CRITICAL();
-
+    OS_ENTER_CRITICAL();
     start=OSTimeGet();
-    
+    OS_EXIT_CRITICAL();
     while(1)
     {
         while(OSTCBCur->compTime > 0) //C ticks
@@ -197,17 +199,23 @@ void Task(void *pdata)
         // do nothing
 
         }
+        OS_ENTER_CRITICAL();
         end=OSTimeGet() ; // end time
+        OS_EXIT_CRITICAL();
         toDelay=(OSTCBCur->period)-(end-start) ;
 
         if(toDelay<0)
         {
-            printf("Time: %d, ", (int)OSTime);
-            printf("task%d with period %d meets Deadline, start: %d, end: %d \n", t->SN, t->p, start, end);
-            
+            OS_ENTER_CRITICAL();
+            //printf("Time: %d, ", (int)OSTime);
+            //printf("task%d with period %d meets Deadline, start: %d, end: %d \n", t->SN, t->p, start, end);
+            if (DLBufIndex < MAX_BUF_AMOUNT)
+                sprintf(&DLBuf[DLBufIndex++], "Time: %d, task%d with period %d meets Deadline\n",(int)OSTime, t->SN, t->p);
+            OS_EXIT_CRITICAL();
             //PC_DispStr(0, 0, "Deadline\n", DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);
-            while(1){
-            }
+            /*while(1){
+            }*/
+            break;
         }
         else{
             start = start + (OSTCBCur->period); // next start time
@@ -221,8 +229,13 @@ void Task(void *pdata)
 
 void PrintBuffer(void){
     static int i = 0;
+    static int j = 0;
     for(; i <  CxtSwBufIndex; i++){
         printf("%s\n", CxtSwBuf[i]);
+        //PC_DispStr(0, i, CxtSwBuf[i], DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);
+    }
+    for(; j <  DLBufIndex; j++){
+        printf("%s\n", DLBuf[j]);
         //PC_DispStr(0, i, CxtSwBuf[i], DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);
     }
 

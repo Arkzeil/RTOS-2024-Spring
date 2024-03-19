@@ -203,7 +203,7 @@
 
 /*Added codes for Lab1*/
 #define MAX_BUF_SIZE    50 /* Maximum buffer size for the context switch buffer*/
-#define MAX_BUF_AMOUNT  10               /* Maximum buffer amount for the context switch buffer*/
+#define MAX_BUF_AMOUNT  20               /* Maximum buffer amount for the context switch buffer*/
 #define MAX_TASKS       10 /* Maximum number of tasks*/
 
 extern char CxtSwBuf[MAX_BUF_AMOUNT][MAX_BUF_SIZE]; /* Counter for the context switch               */
@@ -416,6 +416,7 @@ typedef struct os_tcb {
     /*Add variables in Lab1*/
     INT16U         compTime;           /* to store the residual clock ticks of a task                   */
     INT16U         period;             /* Task period*/
+    INT16U         deadline;
 
 #if OS_TASK_DEL_EN > 0
     BOOLEAN        OSTCBDelReq;        /* Indicates whether a task needs to delete itself              */
