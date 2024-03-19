@@ -188,10 +188,10 @@ void  OSIntExit (void)
             OSIntExitY    = OSUnMapTbl[OSRdyGrp];          /* ... and not locked.                      */
             OSPrioHighRdy = (INT8U)((OSIntExitY << 3) + OSUnMapTbl[OSRdyTbl[OSIntExitY]]);
             if (OSPrioHighRdy != OSPrioCur) {              /* No Ctx Sw if current task is highest rdy */
-                //if (CxtSwBufIndex < MAX_BUF_AMOUNT)
-                //    sprintf(&CxtSwBuf[CxtSwBufIndex++], "%5d     %s     %2d     %2d\n", (int)OSTime, "Preempt", (int)OSPrioCur, (int)OSPrioHighRdy);
-                sprintf(numStr, "%5d     %s     %2d     %2d\n", (int)OSTime, "Preempt", (int)OSPrioCur, (int)OSPrioHighRdy);
-                PC_DispStr(0, print_y++, numStr, DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);
+                if (CxtSwBufIndex < MAX_BUF_AMOUNT)
+                    sprintf(&CxtSwBuf[CxtSwBufIndex++], "%5d     %s     %2d     %2d\n", (int)OSTime, "Preempt", (int)OSPrioCur, (int)OSPrioHighRdy);
+                //sprintf(numStr, "%5d     %s     %2d     %2d\n", (int)OSTime, "Preempt", (int)OSPrioCur, (int)OSPrioHighRdy);
+                //PC_DispStr(0, print_y++, numStr, DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);
 
                 OSTCBHighRdy  = OSTCBPrioTbl[OSPrioHighRdy];
                 OSCtxSwCtr++;                              /* Keep track of the number of ctx switches */
@@ -897,11 +897,11 @@ void  OS_Sched (void)
         OSPrioHighRdy = (INT8U)((y << 3) + OSUnMapTbl[OSRdyTbl[y]]);
         if (OSPrioHighRdy != OSPrioCur) {              /* No Ctx Sw if current task is highest rdy     */
             /*Add codes for Lab1*/
-            //if (CxtSwBufIndex < MAX_BUF_AMOUNT)
-            //    sprintf(&CxtSwBuf[CxtSwBufIndex++], "%5d\t %s\t %2d\t %2d\n", OSTime, "Complete", OSPrioCur, OSPrioHighRdy);
+            if (CxtSwBufIndex < MAX_BUF_AMOUNT)
+                sprintf(&CxtSwBuf[CxtSwBufIndex++], "%5d\t %s\t %2d\t %2d\n", (int)OSTime, "Complete", (int)OSPrioCur, (int)OSPrioHighRdy);
             //PC_DispStr(0, 0, CxtSwBuf[CxtSwBufIndex - 1], DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);
-            sprintf(numStr, "%5d     %s     %2d     %2d\n", (int)OSTime, "Complete", (int)OSPrioCur, (int)OSPrioHighRdy);
-            PC_DispStr(0, print_y++, numStr, DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);
+            //sprintf(numStr, "%5d     %s     %2d     %2d\n", (int)OSTime, "Complete", (int)OSPrioCur, (int)OSPrioHighRdy);
+            //PC_DispStr(0, print_y++, numStr, DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);
            
             /*sprintf(numStr, "%d", OSTime / 200);
             PC_DispStr(0, y, numStr, DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);

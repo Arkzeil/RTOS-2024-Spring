@@ -19,10 +19,10 @@
 */
 
 #define  TASK_STK_SIZE                 512       /* Size of each task's stacks (# of WORDs)            */
-#define  N_TASKS                         2       /* Number of identical tasks                          */
+#define  N_TASKS                         3       /* Number of identical tasks                          */
 /*Added Code for Lab1*/
-#define  MAX_BUF_SIZE                   60      /* Maximum buffer size for the context switch buffer*/
-#define  MAX_BUF_AMOUNT                 10       /* Maximum buffer amount for the context switch buffer*/
+#define  MAX_BUF_SIZE                   50      /* Maximum buffer size for the context switch buffer*/
+#define  MAX_BUF_AMOUNT                 20       /* Maximum buffer amount for the context switch buffer*/
 #define  MAX_TASKS                       10       /* Maximum number of tasks*/
 #define MSG_QUEUE_SIZE 20
 
@@ -110,14 +110,14 @@ void  TaskStart (void *pdata)
 
     OSStatInit();                                          /* Initialize uC/OS-II's statistics         */
 
-    //OSTimeSet(0);
+    OSTimeSet(0);
 
     TaskStartCreateTasks();                                /* Create all the application tasks         */
 
     for (;;) {
         //TaskStartDisp();                                  /* Update the display                       */
 
-        //PrintBuffer();
+        PrintBuffer();
 
         if (PC_GetKey(&key) == TRUE) {                     /* See if key has been pressed              */
             if (key == 0x1B) {                             /* Yes, see if it's the ESCAPE key          */
@@ -143,7 +143,7 @@ static  void  TaskStartCreateTasks (void)
 
     task_prop *t1 = malloc(sizeof(task_prop));
     task_prop *t2 = malloc(sizeof(task_prop));
-    //task_prop *t3 = malloc(sizeof(task_prop));
+    task_prop *t3 = malloc(sizeof(task_prop));
 
     //t1->c = 1 * 19;
     t1->c = 1;
@@ -153,12 +153,12 @@ static  void  TaskStartCreateTasks (void)
     t2->c = 3;
     t2->p = 6;
 
-    /*t3->c = 4;
-    t3->p = 9;*/
+    t3->c = 4;
+    t3->p = 9;
 
     OSTaskCreate(Task, (void *)t1, &TaskStk[0][TASK_STK_SIZE - 1], 1);
     OSTaskCreate(Task, (void *)t2, &TaskStk[1][TASK_STK_SIZE - 1], 2);
-    //OSTaskCreate(Task, (void *)t3, &TaskStk[2][TASK_STK_SIZE - 1], 3);
+    OSTaskCreate(Task, (void *)t3, &TaskStk[2][TASK_STK_SIZE - 1], 3);
 }
 
 /*
@@ -200,7 +200,11 @@ void Task(void *pdata)
 
         if(toDelay<0)
         {
-            PC_DispStr(0, 0, "Deadline\n", DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);;
+            printf("task with period %d meets Deadline\n", t->p);
+            //PC_DispStr(0, 0, "Deadline\n", DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);
+            while(1){
+
+            }
         }
         else{
             OSTimeDly (toDelay); // delay and wait (P-C) times
@@ -212,6 +216,7 @@ void PrintBuffer(void){
     static int i = 0;
     for(; i <  CxtSwBufIndex; i++){
         printf("%s\n", CxtSwBuf[i]);
+        //PC_DispStr(0, i, CxtSwBuf[i], DISP_FGND_BLACK + DISP_BGND_LIGHT_GRAY);
     }
 
     if(i > MAX_BUF_AMOUNT){

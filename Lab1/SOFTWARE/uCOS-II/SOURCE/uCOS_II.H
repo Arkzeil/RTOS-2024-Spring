@@ -202,8 +202,8 @@
 #define OS_FLAG_GRP_DEPLETED    154
 
 /*Added codes for Lab1*/
-#define MAX_BUF_SIZE    60 /* Maximum buffer size for the context switch buffer*/
-#define MAX_BUF_AMOUNT  10               /* Maximum buffer amount for the context switch buffer*/
+#define MAX_BUF_SIZE    50 /* Maximum buffer size for the context switch buffer*/
+#define MAX_BUF_AMOUNT  20               /* Maximum buffer amount for the context switch buffer*/
 #define MAX_TASKS       10 /* Maximum number of tasks*/
 
 extern char CxtSwBuf[MAX_BUF_AMOUNT][MAX_BUF_SIZE]; /* Counter for the context switch               */

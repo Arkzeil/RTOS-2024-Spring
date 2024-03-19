@@ -52,15 +52,17 @@ pc.c:
 Borland C++  Version 3.1 Copyright (c) 1992 Borland International
 test.c:
 
-	Available memory 4096004
+	Available memory 4093444
 	COPY \SOFTWARE\uCOS-II\SOURCE\uCOS_II.C uCOS_II.C
  UCOS_II.C
    1 File(s) copied.
 	C:\BC45\BIN\BCC -c -ml -1 -G -O -Ogemvlbpi -Z -d -n..\obj -k- -v -vi- -wpro -IC:\BC45\INCLUDE -LC:\BC45\LIB uCOS_II.C
 Borland C++  Version 3.1 Copyright (c) 1992 Borland International
 ucos_ii.c:
+Warning \software\ucos-ii\source\os_core.c 192: Suspicious pointer conversion in function OSIntExit
+Warning \software\ucos-ii\source\os_core.c 901: Suspicious pointer conversion in function OS_Sched
 
-	Available memory 4037916
+	Available memory 4038172
 	COPY ..\SOURCE\TEST.LNK
  TEST.LNK
    1 File(s) copied.
