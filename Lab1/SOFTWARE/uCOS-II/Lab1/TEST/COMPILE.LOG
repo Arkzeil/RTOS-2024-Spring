@@ -52,7 +52,7 @@ pc.c:
 Borland C++  Version 3.1 Copyright (c) 1992 Borland International
 test.c:
 
-	Available memory 4093444
+	Available memory 4089868
 	COPY \SOFTWARE\uCOS-II\SOURCE\uCOS_II.C uCOS_II.C
  UCOS_II.C
    1 File(s) copied.

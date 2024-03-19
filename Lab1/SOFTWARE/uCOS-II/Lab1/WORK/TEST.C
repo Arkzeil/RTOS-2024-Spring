@@ -61,6 +61,7 @@ static  void  TaskStartCreateTasks(void);
 
 /*Added Function for Lab1*/
 void    PrintBuffer(void);
+int flag = 0;
 /*end*/
 
 /*$PAGE*/
@@ -160,9 +161,6 @@ static  void  TaskStartCreateTasks (void)
     t3->p = 9;
     t3->SN = 3;
 
-    OSTimeSet(0);
-    printf("OSTime: %d\n ", OSTimeGet());
-    
     OSTaskCreate(Task, (void *)t1, &TaskStk[0][TASK_STK_SIZE - 1], 1);
     OSTaskCreate(Task, (void *)t2, &TaskStk[1][TASK_STK_SIZE - 1], 2);
     OSTaskCreate(Task, (void *)t3, &TaskStk[2][TASK_STK_SIZE - 1], 3);
@@ -182,6 +180,10 @@ void Task(void *pdata)
 
     task_prop* t = (task_prop*)pdata;
 
+    if(!flag){
+        OSTimeSet(0);
+        flag++;
+    }
     OS_ENTER_CRITICAL();
     OSTCBCur->period = t->p;
     OSTCBCur->compTime = t->c;
