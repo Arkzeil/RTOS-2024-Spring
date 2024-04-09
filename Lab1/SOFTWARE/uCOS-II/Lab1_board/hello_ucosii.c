@@ -224,8 +224,8 @@ void Task(void *pdata)
 		if (toDelay < 0)
 		{
 //			sprintf(&CxtSwBuf[CxtSwBufIndex++], "start: %d, period: %d, prio: %d\n", start, (int)OSTCBCur->period, (int)OSTCBCur->OSTCBPrio);
-			sprintf(&CxtSwBuf[CxtSwBufIndex++], "%5d\t Task%d, %d exceed the deadline.\n", 
-                                                ((int)(start/OSTCBCur->period)+1)*OSTCBCur->period , task_info->TaskID, (int)start);
+			sprintf(&CxtSwBuf[CxtSwBufIndex++], "%5d\t Task%d exceed the deadline.\n",
+                                                ((int)(start/OSTCBCur->period)+1)*OSTCBCur->period , (int)OSTCBCur->OSTCBPrio);
 		}
 		start = start + (OSTCBCur->period);             // Next start time
 		OS_EXIT_CRITICAL();
