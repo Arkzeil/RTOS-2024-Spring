@@ -453,7 +453,7 @@ INT16U  OSEventPendMulti (OS_EVENT **pevents_pend, OS_EVENT **pevents_rdy, void 
        *perr        =  OS_ERR_NONE;
         return (events_rdy_nbr);
     }
-/*$PAGE*/
+/*$PAGE*/
                                                         /* Otherwise, must wait until any event occurs */
     OSTCBCur->OSTCBStat     |= events_stat  |           /* Resource not available, ...                 */
                                OS_STAT_MULTI;           /* ... pend on multiple events                 */
@@ -590,7 +590,7 @@ void  OSInit (void)
     OSDebugInit();
 #endif
 }
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                              ENTER ISR
@@ -628,7 +628,7 @@ void  OSIntEnter (void)
         OS_EXIT_CRITICAL();
     }
 }
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                               EXIT ISR
@@ -680,7 +680,7 @@ void  OSIntExit (void)
         OS_EXIT_CRITICAL();
     }
 }
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                          PREVENT SCHEDULING
@@ -718,7 +718,7 @@ void  OSSchedLock (void)
 }
 #endif
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                          ENABLE SCHEDULING
@@ -764,7 +764,7 @@ void  OSSchedUnlock (void)
 }
 #endif
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                          START MULTITASKING
@@ -795,7 +795,7 @@ void  OSStart (void)
         OSStartHighRdy();                            /* Execute target specific code to start task     */
     }
 }
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                        STATISTICS INITIALIZATION
@@ -836,7 +836,7 @@ void  OSStatInit (void)
     OS_EXIT_CRITICAL();
 }
 #endif
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                         PROCESS SYSTEM TICK
@@ -926,7 +926,7 @@ void  OSTimeTick (void)
     }
 }
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                             GET VERSION
@@ -946,7 +946,7 @@ INT16U  OSVersion (void)
     return (OS_VERSION);
 }
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                            DUMMY FUNCTION
@@ -965,7 +965,7 @@ void  OS_Dummy (void)
 }
 #endif
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                             MAKE TASK READY TO RUN BASED ON EVENT OCCURING
@@ -1050,7 +1050,7 @@ INT8U  OS_EventTaskRdy (OS_EVENT *pevent, void *pmsg, INT8U msk, INT8U pend_stat
     return (prio);
 }
 #endif
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                   MAKE TASK WAIT FOR EVENT TO OCCUR
@@ -1083,7 +1083,7 @@ void  OS_EventTaskWait (OS_EVENT *pevent)
     }
 }
 #endif
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                          MAKE TASK WAIT FOR ANY OF MULTIPLE EVENTS TO OCCUR
@@ -1126,7 +1126,7 @@ void  OS_EventTaskWaitMulti (OS_EVENT **pevents_wait)
     }
 }
 #endif
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                   REMOVE TASK FROM EVENT WAIT LIST
@@ -1236,7 +1236,7 @@ void  OS_EventWaitListInit (OS_EVENT *pevent)
     }
 }
 #endif
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                             INITIALIZATION
@@ -1290,7 +1290,7 @@ static  void  OS_InitEventList (void)
 #endif
 #endif
 }
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                             INITIALIZATION
@@ -1326,7 +1326,7 @@ static  void  OS_InitMisc (void)
     OSStatRdy     = OS_FALSE;                              /* Statistic task is not ready              */
 #endif
 }
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                             INITIALIZATION
@@ -1363,7 +1363,7 @@ static  void  OS_InitRdyList (void)
     OSTCBCur      = (OS_TCB *)0;
 }
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                             INITIALIZATION
@@ -1428,7 +1428,7 @@ static  void  OS_InitTaskIdle (void)
 #endif
 #endif
 }
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                             INITIALIZATION
@@ -1495,7 +1495,7 @@ static  void  OS_InitTaskStat (void)
 #endif
 }
 #endif
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                             INITIALIZATION
@@ -1597,7 +1597,7 @@ void  OS_MemCopy (INT8U *pdest, INT8U *psrc, INT16U size)
         size--;
     }
 }
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                              SCHEDULER
@@ -1721,7 +1721,7 @@ INT8U  OS_StrCopy (INT8U *pdest, INT8U *psrc)
     return (len);
 }
 #endif
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                DETERMINE THE LENGTH OF AN ASCII STRING
@@ -1790,7 +1790,7 @@ void  OS_TaskIdle (void *p_arg)
         OSTaskIdleHook();                        /* Call user definable HOOK                           */
     }
 }
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                            STATISTICS TASK
@@ -1889,7 +1889,7 @@ void  OS_TaskStatStkChk (void)
     }
 }
 #endif
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                            INITIALIZE TCB

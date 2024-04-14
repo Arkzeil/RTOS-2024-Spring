@@ -22,7 +22,6 @@
 
 #define TASK_START_ID 0 /* Application tasks                             */
 
-#define MSG_QUEUE_SIZE 20 /* Size of message queue used in example         */
 
 #ifndef MAX_BUF_AMOUNT
 #define MAX_BUF_AMOUNT 300
@@ -61,8 +60,9 @@ OS_STK TaskStartStk[TASK_STK_SIZE];      /* Startup    task stack               
 OS_STK TaskStk[NUM_TASK][TASK_STK_SIZE]; /* Task stacks                                   */
 
 // TASK_USER_DATA  TaskUserData[7];
-
+// Store messages printed out
 char CxtSwBuf[MAX_BUF_AMOUNT][50];
+// to indicate next message to be printed
 int CxtSwBufIndex = 0;
 TASK_INFO task_info[NUM_TASK];
 
@@ -129,8 +129,6 @@ void TaskStart(void *pdata)
 
     OSStatInit(); /* Initialize uC/OS-II's statistics         */
 
-//    MsgQueue = OSQCreate(&MsgQueueTbl[0], MSG_QUEUE_SIZE); /* Create a message queue                   */
-
     OSTimeSet(0);
 
     TaskStartCreateTasks(); /* Create all the application tasks         */
@@ -150,7 +148,7 @@ void TaskStart(void *pdata)
 //        }
 
         OSCtxSwCtr = 0;              /* Clear the context switch counter         */
-        OSTimeDly(300); /* Wait one second                          */
+        OSTimeDly(OS_TICKS_PER_SEC); /* Wait one second                          */
     }
 }
 /*$PAGE*/

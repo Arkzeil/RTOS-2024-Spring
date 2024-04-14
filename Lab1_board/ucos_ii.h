@@ -94,7 +94,7 @@ extern "C" {
 
 #define  OS_TCB_RESERVED        ((OS_TCB *)1)
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                              TASK STATUS (Bit definition for OSTCBStat)
@@ -378,7 +378,7 @@ extern "C" {
 #define OS_FLAG_INVALID_OPT          OS_ERR_FLAG_INVALID_OPT
 #define OS_FLAG_GRP_DEPLETED         OS_ERR_FLAG_GRP_DEPLETED
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                          EVENT CONTROL BLOCK
@@ -500,7 +500,7 @@ typedef struct os_mem_data {
 } OS_MEM_DATA;
 #endif
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                    MUTUAL EXCLUSION SEMAPHORE DATA
@@ -586,7 +586,7 @@ typedef struct os_stk_data {
 } OS_STK_DATA;
 #endif
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                          TASK CONTROL BLOCK
@@ -660,7 +660,7 @@ typedef struct os_tcb {
 #endif
 } OS_TCB;
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 ************************************************************************************************************************
 *                                                   TIMER DATA TYPES
@@ -792,7 +792,7 @@ OS_EXT  OS_TMR_WHEEL      OSTmrWheelTbl[OS_TMR_CFG_WHEEL_SIZE];
 
 extern  INT8U   const     OSUnMapTbl[256];          /* Priority->Index    lookup table                 */
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                          FUNCTION PROTOTYPES
@@ -996,7 +996,7 @@ INT8U         OSMutexQuery            (OS_EVENT        *pevent,
 
 #endif
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                         MESSAGE QUEUE MANAGEMENT
@@ -1056,7 +1056,7 @@ INT8U         OSQQuery                (OS_EVENT        *pevent,
 
 #endif
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                          SEMAPHORE MANAGEMENT
@@ -1101,7 +1101,7 @@ void          OSSemSet                (OS_EVENT        *pevent,
 
 #endif
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                            TASK MANAGEMENT
@@ -1161,7 +1161,7 @@ INT8U         OSTaskQuery             (INT8U            prio,
                                        OS_TCB          *p_task_data);
 #endif
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                            TIME MANAGEMENT
@@ -1250,7 +1250,7 @@ void          OSStatInit              (void);
 
 INT16U        OSVersion               (void);
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                      INTERNAL FUNCTION PROTOTYPES
@@ -1340,7 +1340,7 @@ INT8U         OS_TCBInit              (INT8U            prio,
 void          OSTmr_Init              (void);
 #endif
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                          FUNCTION PROTOTYPES
@@ -1416,7 +1416,7 @@ void          OSIntCtxSw              (void);
 void          OSCtxSw                 (void);
 #endif
 
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                   LOOK FOR MISSING #define CONSTANTS
