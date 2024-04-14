@@ -65,6 +65,8 @@ char CxtSwBuf[MAX_BUF_AMOUNT][50];
 int CxtSwBufIndex = 0;
 TASK_INFO task_info[NUM_TASK];
 
+void TaskArgumentSetting(TASK_INFO *task_info);
+
 /*
 *********************************************************************************************************
 *                                         FUNCTION PROTOTYPES
@@ -91,7 +93,6 @@ void main(void) {
 
     OSInit(); /* Initialize uC/OS-II                      */
 
-    // L2
     OSTCBPrioTbl[OS_TASK_IDLE_PRIO]->deadline = 1002;
 
     //    PC_DOSSaveReturn(); /* Save environment to return to DOS        */
@@ -114,91 +115,78 @@ void main(void) {
 *********************************************************************************************************
 */
 
-// void TaskStart(void *pdata)
-//{
-// #if OS_CRITICAL_METHOD == 3 /* Allocate storage for CPU status register */
-//     OS_CPU_SR cpu_sr;
-// #endif
-//     INT16S key;
-//
-//     pdata = pdata; /* Prevent compiler warning                 */
-//
-//     // TaskStartDispInit(); /* Setup the display                        */
-//
-////    OS_ENTER_CRITICAL(); /* Install uC/OS-II's clock tick ISR        */
-////    PC_VectSet(0x08, OSTickISR);
-////    PC_SetTickRate(OS_TICKS_PER_SEC); /* Reprogram tick rate                      */
-////    OS_EXIT_CRITICAL();
-//
-////    OSStatInit(); /* Initialize uC/OS-II's statistics         */
-//
-////    MsgQueue = OSQCreate(&MsgQueueTbl[0], MSG_QUEUE_SIZE); /* Create a message queue                   */
-//
-////    OSTimeSet(0);
-//
-//    printf("TaskStart OSTime: %d\n ", OSTimeGet());
-//
-//    TaskStartCreateTasks(); /* Create all the application tasks         */
-//
-//    for (;;)
-//    {
-//        // TaskStartDisp(); /* Update the display                       */
-//
-//        PrintBuffer(); /* Print the log of context switch */
-//
-////        if (PC_GetKey(&key))
-////        { /* See if key has been pressed              */
-////            if (key == 0x1B)
-////            {                   /* Yes, see if it's the ESCAPE key          */
-////                PC_DOSReturn(); /* Yes, return to DOS                       */
-////            }
-////        }
-//
-//        OSCtxSwCtr = 0;              /* Clear the context switch counter         */
-////        OSTimeDly(300); /* Wait one second                          */
-//    }
-//}
+void TaskStart(void *pdata) {
+#if OS_CRITICAL_METHOD == 3 /* Allocate storage for CPU status register */
+    OS_CPU_SR cpu_sr;
+#endif
+    INT16S key;
+
+    pdata = pdata; /* Prevent compiler warning                 */
+
+    // TaskStartDispInit(); /* Setup the display                        */
+
+    //    OS_ENTER_CRITICAL(); /* Install uC/OS-II's clock tick ISR        */
+    //    PC_VectSet(0x08, OSTickISR);
+    //    PC_SetTickRate(OS_TICKS_PER_SEC); /* Reprogram tick rate                      */
+    //    OS_EXIT_CRITICAL();
+
+    OSStatInit(); /* Initialize uC/OS-II's statistics         */
+
+    //    MsgQueue = OSQCreate(&MsgQueueTbl[0], MSG_QUEUE_SIZE); /* Create a message queue                   */
+
+    OSTimeSet(0);
+
+    TaskStartCreateTasks(); /* Create all the application tasks         */
+
+    for (;;) {
+        // TaskStartDisp(); /* Update the display                       */
+
+        PrintBuffer(); /* Print the log of context switch */
+
+        //        if (PC_GetKey(&key))
+        //        { /* See if key has been pressed              */
+        //            if (key == 0x1B)
+        //            {                   /* Yes, see if it's the ESCAPE key          */
+        //                PC_DOSReturn(); /* Yes, return to DOS                       */
+        //            }
+        //        }
+
+        OSCtxSwCtr = 0; /* Clear the context switch counter         */
+        OSTimeDly(300); /* Wait one second                          */
+    }
+}
 /*$PAGE*/
 /*
 *********************************************************************************************************
 *                                      CREATE APPLICATION TASKS
 *********************************************************************************************************
 */
-
-// L2
 static void TaskStartCreateTasks(void) {
-    task_info[1].compTime = 1;
-    task_info[1].period = 3;
+    task_info[0].compTime = 1;
+    task_info[0].period = 3;
 
-    task_info[2].compTime = 3;
-    task_info[2].period = 5;
+    task_info[1].compTime = 3;
+    task_info[1].period = 5;
 
-    printf("OSTime: %d\n ", OSTimeGet());
+    OSTaskCreate(Task, (void *)&task_info[0], &TaskStk[1][TASK_STK_SIZE - 1], (INT8U)1);
+    OSTaskCreate(Task, (void *)&task_info[1], &TaskStk[2][TASK_STK_SIZE - 1], (INT8U)2);
 
-    OSTaskCreate(Task, (void *)&task_info[1], &TaskStk[1][TASK_STK_SIZE - 1], (INT8U)1);
-    OSTaskCreate(Task, (void *)&task_info[2], &TaskStk[2][TASK_STK_SIZE - 1], (INT8U)2);
+    //
+    //    task_info[0].compTime = 1;
+    //    task_info[0].period = 4;
+    //
+    //    task_info[1].compTime = 2;
+    //    task_info[1].period = 5;
+    //
+    //    task_info[2].compTime = 2;
+    //    task_info[2].period = 10;
+    //
+    //    OSTaskCreate(Task, (void *)&task_info[0], &TaskStk[0][TASK_STK_SIZE - 1], (INT8U)1);
+    //    OSTaskCreate(Task, (void *)&task_info[1], &TaskStk[1][TASK_STK_SIZE - 1], (INT8U)2);
+    //    OSTaskCreate(Task, (void *)&task_info[2], &TaskStk[2][TASK_STK_SIZE - 1], (INT8U)3);
 
     TaskArgumentSetting(task_info);
 }
-
-// static void TaskStartCreateTasks(void) {
-//     task_info[0].compTime = 1;
-//     task_info[0].period = 4;
-//
-//     task_info[1].compTime = 2;
-//     task_info[1].period = 5;
-//
-//     task_info[2].compTime = 2;
-//     task_info[2].period = 10;
-//
-//     printf("OSTime: %d\n ", OSTimeGet());
-//
-//     OSTaskCreate(Task, (void *)&task_info[0], &TaskStk[0][TASK_STK_SIZE - 1], (INT8U)1);
-//     OSTaskCreate(Task, (void *)&task_info[1], &TaskStk[1][TASK_STK_SIZE - 1], (INT8U)2);
-//     OSTaskCreate(Task, (void *)&task_info[2], &TaskStk[2][TASK_STK_SIZE - 1], (INT8U)3);
-//
-//     TaskArgumentSetting(task_info);
-// }
 
 /*$PAGE*/
 
@@ -227,30 +215,28 @@ void Task(void *pdata) {
     OSTCBCur->period = taskInfo->period;
     OS_EXIT_CRITICAL();
 
-    start = OSTimeGet();
-    printf("OSTCBCur->OSTCBPrio: %d\n", (int)OSTCBCur->OSTCBPrio);
+    start = 0;
 
     for (;;) {
-
         PrintBuffer(); /* Print the log of context switch */
+
         while (OSTCBCur->compTime > 0) {
             /* Computing */
         }
-
-        OS_ENTER_CRITICAL();
-
         end = OSTimeGet();
         toDelay = (OSTCBCur->period) - (end - start);
 
-        if (toDelay < 0) {
-            sprintf(&CxtSwBuf[CxtSwBufIndex++], "%5d\t Task%d, %d exceed the deadline.\n", ((int)(start / OSTCBCur->period) + 1) * OSTCBCur->period, (int)OSTCBCur->OSTCBPrio, (int)start);
-        }
-
-        OSTCBCur->compTime = taskInfo->compTime; // Reset the counter
+        OS_ENTER_CRITICAL();
         start = start + (OSTCBCur->period);      // Next start time
+        OSTCBCur->compTime = taskInfo->compTime; // Reset the counter
         OSTCBCur->deadline = start + OSTCBCur->period;
-
         OS_EXIT_CRITICAL();
+
+        if (toDelay < 0) {
+            //			sprintf(&CxtSwBuf[CxtSwBufIndex++], "start: %d, period: %d, prio: %d\n", start, (int)OSTCBCur->period, (int)OSTCBCur->OSTCBPrio);
+            sprintf(&CxtSwBuf[CxtSwBufIndex++], "%5d\t Task%d exceed the deadline.\n",
+                    ((int)(start / OSTCBCur->period) + 1) * OSTCBCur->period, (int)OSTCBCur->OSTCBPrio);
+        }
 
         OSTimeDly(toDelay);
     }
@@ -262,20 +248,18 @@ void TaskArgumentSetting(TASK_INFO *task_info) {
     while (ptcb->OSTCBPrio == 0 || ptcb->OSTCBPrio == 1 || ptcb->OSTCBPrio == 2 || ptcb->OSTCBPrio == 3) {
 
         if (ptcb->OSTCBPrio == 1) {
+            ptcb->compTime = task_info[0].compTime;
+            ptcb->period = task_info[0].period;
+            ptcb->deadline = task_info[0].period;
+        } else if (ptcb->OSTCBPrio == 2) {
             ptcb->compTime = task_info[1].compTime;
             ptcb->period = task_info[1].period;
             ptcb->deadline = task_info[1].period;
-        } else if (ptcb->OSTCBPrio == 2) {
+        } else if (ptcb->OSTCBPrio == 3) {
             ptcb->compTime = task_info[2].compTime;
             ptcb->period = task_info[2].period;
             ptcb->deadline = task_info[2].period;
         }
-        //        else if (ptcb->OSTCBPrio == 3)
-        //        {
-        //            ptcb->compTime = task_info[3].compTime;
-        //            ptcb->period = task_info[3].period;
-        //            ptcb->deadline = task_info[3].period;
-        //        }
         ptcb = ptcb->OSTCBNext;
     }
 }

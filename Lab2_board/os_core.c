@@ -77,7 +77,7 @@ static void OS_InitTCBList(void);
 
 static void OS_SchedNew(void);
 
-INT8U FindOSPrioHighRdyUnderEDF();
+INT8U EDFSched();
 
 /*$PAGE*/
 /*
@@ -639,24 +639,22 @@ void OSIntEnter(void) {
 *********************************************************************************************************
 */
 
-INT8U FindOSPrioHighRdyUnderEDF() {
+INT8U EDFSched() {
     OS_TCB *ptcb;
     INT8U prioHighRdy = OS_TASK_IDLE_PRIO;
     INT16U minDeadline = 10000;
 
     ptcb = OSTCBList; /* Point at first TCB in TCB list           */
-    // Linear search for the ready task which has the nearest deadline
-    while (ptcb->OSTCBPrio < 3) {
+    // Linear search for the ready task which has the nearsest deadline
+    while (ptcb->OSTCBPrio == 1 || ptcb->OSTCBPrio == 2 || ptcb->OSTCBPrio == 3) {
         if (ptcb->OSTCBStat == OS_STAT_RDY && !ptcb->OSTCBDly && ptcb->deadline < minDeadline) {
             prioHighRdy = ptcb->OSTCBPrio;
             minDeadline = ptcb->deadline;
         }
-        sprintf(&CxtSwBuf[CxtSwBufIndex++], "Task Prio: %d, Delay: %d, deadline: %d\n", ptcb->OSTCBPrio, ptcb->OSTCBDly, ptcb->deadline);
+        // sprintf(&CtxSwMsgBuf[CtxSwMsgCursor++], "Task Prio: %d, Delay: %d, stat: %d\n", ptcb->OSTCBPrio, ptcb->OSTCBDly, ptcb->OSTCBStat);
         ptcb = ptcb->OSTCBNext; /* Point at next TCB in TCB list            */
     }
-    sprintf(&CxtSwBuf[CxtSwBufIndex++], "minDeadline %d\n", (int)minDeadline);
-
-    sprintf(&CxtSwBuf[CxtSwBufIndex++], "time %d,deadline %d ,prioHighRdy %d, curPrio %d\n", (int)OSTime, (int)ptcb->deadline, (int)prioHighRdy, (int)OSPrioCur);
+    // sprintf(&CtxSwMessage[CtxSwMessageTop++],"time %d,deadline %d ,prioHighRdy %d, curPrio %d\n",(int)OSTime,(int)deadLine,(int)prioHighRdy,(int)OSPrioCur);
     return prioHighRdy;
 }
 
@@ -672,18 +670,18 @@ void OSIntExit(void) {
         }
         if (OSIntNesting == 0) {      /* Reschedule only if all ISRs complete ... */
             if (OSLockNesting == 0) { /* ... and not locked.                      */
-                OS_SchedNew();
-
-                OSPrioHighRdy = FindOSPrioHighRdyUnderEDF();
+                                      //                OS_SchedNew();
+                OSPrioHighRdy = EDFSched();
 
                 if (OSPrioHighRdy != OSPrioCur) { /* No Ctx Sw if current task is highest rdy */
                     if (CxtSwBufIndex < MAX_BUF_AMOUNT)
+                        sprintf(&CxtSwBuf[CxtSwBufIndex++], "%5d\t %s\t %2d\t %2d\n", (int)OSTime, "Preempt ", (int)OSPrioCur, (int)OSPrioHighRdy);
 
-                        OSTCBHighRdy = OSTCBPrioTbl[OSPrioHighRdy];
+                    OSTCBHighRdy = OSTCBPrioTbl[OSPrioHighRdy];
 #if OS_TASK_PROFILE_EN > 0
                     OSTCBHighRdy->OSTCBCtxSwCtr++; /* Inc. # of context switches to this task  */
 #endif
-                    sprintf(&CxtSwBuf[CxtSwBufIndex++], "%5d\t %s\t %2d\t %2d\n", (int)OSTime, "Preempt ", (int)OSPrioCur, (int)OSPrioHighRdy);
+
                     OSCtxSwCtr++; /* Keep track of the number of ctx switches */
                     OSIntCtxSw(); /* Perform interrupt level ctx switch       */
                 }
@@ -792,8 +790,12 @@ void OSSchedUnlock(void) {
 */
 
 void OSStart(void) {
+    OSTimeSet(0);
     if (OSRunning == OS_FALSE) {
-        OS_SchedNew(); /* Find highest priority's task priority number   */
+        //        OS_SchedNew();                               /* Find highest priority's task priority number   */
+        OSPrioHighRdy = EDFSched();
+        sprintf(&CxtSwBuf[CxtSwBufIndex++], "%5d\t %s\t %2d\t %2d\n", (int)OSTime, "Preempt ", (int)OSPrioCur, (int)OSPrioHighRdy);
+
         OSPrioCur = OSPrioHighRdy;
         OSTCBHighRdy = OSTCBPrioTbl[OSPrioHighRdy]; /* Point to highest priority task ready to run    */
         OSTCBCur = OSTCBHighRdy;
@@ -1596,17 +1598,18 @@ void OS_Sched(void) {
     OS_ENTER_CRITICAL();
     if (OSIntNesting == 0) {      /* Schedule only if all ISRs done and ...       */
         if (OSLockNesting == 0) { /* ... scheduler is not locked                  */
-            OS_SchedNew();
-            OSPrioHighRdy = FindOSPrioHighRdyUnderEDF();
+                                  //            OS_SchedNew();
+            OSPrioHighRdy = EDFSched();
             if (OSPrioHighRdy != OSPrioCur) {
                 if (CxtSwBufIndex < MAX_BUF_AMOUNT)
-                    OSTCBHighRdy = OSTCBPrioTbl[OSPrioHighRdy];
+                    sprintf(&CxtSwBuf[CxtSwBufIndex++], "%5d\t %s\t %2d\t %2d\n", (int)OSTime, "Complete", (int)OSPrioCur, (int)OSPrioHighRdy); /* No Ctx Sw if current task is highest rdy     */
+                OSTCBHighRdy = OSTCBPrioTbl[OSPrioHighRdy];
 #if OS_TASK_PROFILE_EN > 0
                 OSTCBHighRdy->OSTCBCtxSwCtr++; /* Inc. # of context switches to this task      */
 #endif
-                sprintf(&CxtSwBuf[CxtSwBufIndex++], "%5d\t %s\t %2d\t %2d\n", (int)OSTime, "Complete", (int)OSPrioCur, (int)OSPrioHighRdy); /* No Ctx Sw if current task is highest rdy     */
-                OSCtxSwCtr++;                                                                                                               /* Increment context switch counter             */
-                OS_TASK_SW();                                                                                                               /* Perform a context switch                     */
+
+                OSCtxSwCtr++; /* Increment context switch counter             */
+                OS_TASK_SW(); /* Perform a context switch                     */
             }
         }
     }
