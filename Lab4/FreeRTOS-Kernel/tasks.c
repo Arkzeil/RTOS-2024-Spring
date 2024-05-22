@@ -115,6 +115,8 @@
     #define configIDLE_TASK_NAME    "IDLE"
 #endif
 
+int CxtSwBufIndex = 0;
+
 #if ( configUSE_PORT_OPTIMISED_TASK_SELECTION == 0 )
 
 /* If configUSE_PORT_OPTIMISED_TASK_SELECTION is 0 then task selection is
@@ -133,21 +135,12 @@
 
 /*-----------------------------------------------------------*/
 
+UBaseType_t EDFSched();
+
     #define taskSELECT_HIGHEST_PRIORITY_TASK()                                \
     {                                                                         \
-        UBaseType_t uxTopPriority = uxTopReadyPriority;                       \
-                                                                              \
-        /* Find the highest priority queue that contains ready tasks. */      \
-        while( listLIST_IS_EMPTY( &( pxReadyTasksLists[ uxTopPriority ] ) ) ) \
-        {                                                                     \
-            configASSERT( uxTopPriority );                                    \
-            --uxTopPriority;                                                  \
-        }                                                                     \
-                                                                              \
-        /* listGET_OWNER_OF_NEXT_ENTRY indexes through the list, so the tasks of \
-         * the  same priority get an equal share of the processor time. */                    \
-        listGET_OWNER_OF_NEXT_ENTRY( pxCurrentTCB, &( pxReadyTasksLists[ uxTopPriority ] ) ); \
-        uxTopReadyPriority = uxTopPriority;                                                   \
+                                              \
+        uxTopReadyPriority = EDFSched(); \
     } /* taskSELECT_HIGHEST_PRIORITY_TASK */
 
 /*-----------------------------------------------------------*/
@@ -328,6 +321,12 @@ typedef struct tskTaskControlBlock       /* The old naming convention is used to
     #if ( configUSE_POSIX_ERRNO == 1 )
         int iTaskErrno;
     #endif
+
+    uint32_t compTime;     /* Execution counter*/
+    uint32_t period;       /* The period of the task */
+    uint32_t deadline;     /* The deadline of the task*/
+
+
 } tskTCB;
 
 /* The old tskTCB name is maintained above then typedefed to the new TCB_t name
@@ -721,7 +720,6 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
 
 #endif /* portUSING_MPU_WRAPPERS */
 /*-----------------------------------------------------------*/
-
 #if ( configSUPPORT_DYNAMIC_ALLOCATION == 1 )
 
     BaseType_t xTaskCreate( TaskFunction_t pxTaskCode,
@@ -808,6 +806,9 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB ) PRIVILEGED_FUNCTION;
         {
             xReturn = errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
         }
+        pxNewTCB->period = ((TASK_INFO *)pvParameters)->period;
+        pxNewTCB->deadline = pxNewTCB->period;
+        pxNewTCB->compTime = ((TASK_INFO *)pvParameters)->compTime;
 
         return xReturn;
     }
@@ -1136,6 +1137,8 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
          * then it should run now. */
         if( pxCurrentTCB->uxPriority < pxNewTCB->uxPriority )
         {
+            /* No Ctx Sw if current task is highest rdy     */
+            //sprintf(&CxtSwBuf[CxtSwBufIndex++], "%d C %d %d\n", (int)xTaskGetTickCount(), (int)pxCurrentTCB->uxPriority, (int)pxNewTCB->uxPriority);
             taskYIELD_IF_USING_PREEMPTION();
         }
         else
@@ -1684,6 +1687,7 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
 
                 if( xYieldRequired != pdFALSE )
                 {
+
                     taskYIELD_IF_USING_PREEMPTION();
                 }
                 else
@@ -1884,6 +1888,8 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
                         /* This yield may not cause the task just resumed to run,
                          * but will leave the lists in the correct state for the
                          * next yield. */
+                        // sprintf(&CxtSwBuf[CxtSwBufIndex++], "%d C %d %d\n", (int)xTaskGetTickCount(), (int)pxCurrentTCB->uxPriority, (int)pxTCB->uxPriority);
+
                         taskYIELD_IF_USING_PREEMPTION();
                     }
                     else
@@ -1988,6 +1994,9 @@ static void prvAddNewTaskToReadyList( TCB_t * pxNewTCB )
 void vTaskStartScheduler( void )
 {
     BaseType_t xReturn;
+
+     uxTopReadyPriority = EDFSched();
+     sprintf(&CxtSwBuf[CxtSwBufIndex++], "%d P %d %d\n", (int)xTaskGetTickCount(), (int)pxCurrentTCB->uxPriority, (int)uxTopReadyPriority);
 
     /* Add the idle task at the lowest priority. */
     #if ( configSUPPORT_STATIC_ALLOCATION == 1 )
@@ -2892,7 +2901,7 @@ BaseType_t xTaskIncrementTick( void )
             }
         #endif
     }
-
+    pxCurrentTCB->compTime--;
     return xSwitchRequired;
 }
 /*-----------------------------------------------------------*/
@@ -3022,6 +3031,8 @@ void vTaskSwitchContext( void )
         xYieldPending = pdFALSE;
         traceTASK_SWITCHED_OUT();
 
+        int pxOldTCBPrio = pxCurrentTCB->uxPriority; // xxxxxxxx
+
         #if ( configGENERATE_RUN_TIME_STATS == 1 )
             {
                 #ifdef portALT_GET_RUN_TIME_COUNTER_VALUE
@@ -3063,6 +3074,20 @@ void vTaskSwitchContext( void )
         /* Select a new task to run using either the generic C or port
          * optimised asm code. */
         taskSELECT_HIGHEST_PRIORITY_TASK(); /*lint !e9079 void * is used as this macro is used with timers and co-routines too.  Alignment is known to be fine as the type of the pointer stored and retrieved is the same. */
+        pxCurrentTCB->uxPriority = EDFSched();
+
+        int pxNewTCBPrio = pxCurrentTCB->uxPriority; // xxxxxxxx
+
+        /* Detect if a preemption is happening */
+        if ((pxOldTCBPrio != pxNewTCBPrio) ) {
+
+            sprintf(&CxtSwBuf[CxtSwBufIndex++], "%d P %d %d\n",
+                    (int)xTaskGetTickCount(), pxOldTCBPrio, pxNewTCBPrio);
+
+//            sprintf(&CxtSwBuf[CxtSwBufIndex++], "%d C %d %d\n",
+//                    (int)xTaskGetTickCount(), pxOldTCBPrio, pxNewTCBPrio);
+
+        }
         traceTASK_SWITCHED_IN();
 
         /* After the new task is switched in, update the global errno. */
@@ -4951,6 +4976,7 @@ TickType_t uxTaskResetEventItemValue( void )
                 {
                     /* The notified task has a priority above the currently
                      * executing task so a yield is required. */
+                    // sprintf(&CxtSwBuf[CxtSwBufIndex++], "%d C %d %d\n", (int)xTaskGetTickCount(), (int)pxCurrentTCB->uxPriority, (int)pxTCB->uxPriority);
                     taskYIELD_IF_USING_PREEMPTION();
                 }
                 else
@@ -5404,3 +5430,117 @@ static void prvAddCurrentTaskToDelayedList( TickType_t xTicksToWait,
     #endif
 
 #endif /* if ( configINCLUDE_FREERTOS_TASK_C_ADDITIONS_H == 1 ) */
+
+//UBaseType_t EDFSched() {
+//    TCB_t *ptcb;
+//    UBaseType_t prioHighRdy = tskIDLE_PRIORITY;
+//    uint32_t minDeadline = 10000;
+//
+//    ListItem_t *tcb_list = pxReadyTasksLists[3].pxIndex;
+//    ptcb = (TCB_t *) tcb_list->pvOwner;
+//
+//    while (ptcb->uxPriority == 0 || ptcb->uxPriority == 1 || ptcb->uxPriority == 2 || ptcb->uxPriority == 3) {
+//         if (ptcb->uxPriority == 0) continue;
+//
+//        if (ptcb->deadline < minDeadline) {
+//                   prioHighRdy = ptcb->uxPriority;
+//                   minDeadline = ptcb->deadline;
+//        }
+//        tcb_list = tcb_list->pxNext;
+//        ptcb = (TCB_t *) tcb_list->pvOwner;
+//    }
+//    return prioHighRdy;
+//}
+
+
+
+
+        UBaseType_t EDFSched(void) {
+            TCB_t *ptcb;
+            UBaseType_t prioHighRdy = tskIDLE_PRIORITY;
+            uint32_t minDeadline = UINT32_MAX;
+            int prio = 0;
+
+            // Iterate over all priorities, assuming 0-3 are the valid ones
+            for (prio = 0; prio <= 4; prio++) {
+                List_t *readyList = &pxReadyTasksLists[prio];
+                if (listLIST_IS_EMPTY(readyList)) {
+                    continue;
+                }
+
+                // Get the first item in the list
+                ListItem_t *tcb_list = (ListItem_t *)(listGET_HEAD_ENTRY(readyList));
+                // Get the number of items in the list
+                UBaseType_t numItems = listCURRENT_LIST_LENGTH(readyList);
+                UBaseType_t i = 0;
+                // Iterate through the ready list
+                for (; i < numItems; i++) {
+                    ptcb = (TCB_t *)(listGET_LIST_ITEM_OWNER(tcb_list));
+
+                    // Check the deadline
+                    if (ptcb->deadline < minDeadline) {
+                        prioHighRdy = ptcb->uxPriority;
+                        minDeadline = ptcb->deadline;
+                    }
+
+                    // Move to the next item in the list
+                    tcb_list = listGET_NEXT(tcb_list);
+                }
+
+
+                // Get the first item in the list
+//                ListItem_t *tcb_list = (ListItem_t *)(listGET_HEAD_ENTRY(readyList));
+//                ListItem_t *end_marker = listGET_END_MARKER(readyList);
+//
+//                // Iterate through the ready list
+//                while (tcb_list != end_marker) {
+//                    ptcb = (TCB_t *)(listGET_LIST_ITEM_OWNER(tcb_list));
+//
+//                    // Check the deadline
+//                    if (ptcb->deadline < minDeadline) {
+//                        prioHighRdy = ptcb->uxPriority;
+//                        minDeadline = ptcb->deadline;
+//                    }
+//
+//                    // Move to the next item in the list
+//                    tcb_list = listGET_NEXT(tcb_list);
+//                }
+            }
+
+            return prioHighRdy;
+        }
+
+
+void setTCB(int c, int p){
+    pxCurrentTCB->compTime = c;
+    pxCurrentTCB->period = p;
+    pxCurrentTCB->deadline = p;
+}
+
+int getC(){
+    return pxCurrentTCB->compTime;
+}
+
+int getP() {
+    return pxCurrentTCB->period;
+}
+
+int getD() {
+    return pxCurrentTCB->deadline;
+}
+
+void setC(int c) {
+    pxCurrentTCB->compTime = c;
+}
+
+void setP(int p) {
+    pxCurrentTCB->period = p;
+}
+
+void setD(int d){
+    pxCurrentTCB->deadline = d;
+}
+
+int getPri() {
+    return pxCurrentTCB->uxPriority;
+}

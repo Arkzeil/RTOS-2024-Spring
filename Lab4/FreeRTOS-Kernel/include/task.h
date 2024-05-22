@@ -73,6 +73,37 @@
  * array. */
 #define tskDEFAULT_INDEX_TO_NOTIFY     ( 0 )
 
+#define NUM_TASK 3
+#define MAX_BUF_AMOUNT 20
+
+char CxtSwBuf[MAX_BUF_AMOUNT][8];
+extern int CxtSwBufIndex;
+
+//void Task1( void *pvParameters );
+//void Task2( void *pvParameters );
+
+void setTCB(int c, int p);
+
+int getPri();
+
+int getC();
+
+int getP();
+
+int getD();
+
+void setC(int c);
+
+void setP(int p);
+
+void setD(int d);
+
+typedef struct
+{
+    int compTime;
+    int period;
+} TASK_INFO;
+TASK_INFO task_info[NUM_TASK];
 /**
  * task. h
  *

@@ -67,7 +67,7 @@
 #include "task.h"
 #include "semphr.h"
 #include "list.h"
-//#include <stdio.h>
+#include <stdio.h>
 
 /* Standard demo includes. */
 #include "partest.h"
@@ -99,24 +99,29 @@ void main_blinky( void );
 /*
  * The tasks as described in the comments at the top of this file.
  */
-static void prvQueueReceiveTask( void *pvParameters );
-static void prvQueueSendTask( void *pvParameters );
+//static void prvQueueReceiveTask( void *pvParameters );
+//static void prvQueueSendTask( void *pvParameters );
 
 /*-----------------------------------------------------------*/
 
 /* The queue used by both tasks. */
-static QueueHandle_t xQueue = NULL;
+//static QueueHandle_t xQueue = NULL;
 
 /*-----------------------------------------------------------*/
+
+void Task1( void *pvParameters );
+void Task2( void *pvParameters );
+
+void PrintBuffer();
 
 
 void main_blinky( void )
 {
 	/* Create the queue. */
-	xQueue = xQueueCreate( mainQUEUE_LENGTH, sizeof( uint32_t ) );
+//	xQueue = xQueueCreate( mainQUEUE_LENGTH, sizeof( uint32_t ) );
 
-	if( xQueue != NULL )
-	{
+//	if( xQueue != NULL )
+//	{
 		/* Start the two tasks as described in the comments at the top of this
 		file. */
 //		xTaskCreate( prvQueueReceiveTask,				/* The function that implements the task. */
@@ -134,7 +139,6 @@ void main_blinky( void )
         task_info[1].compTime = 3;
         task_info[1].period = 5;
 
-
         //
         //    task_info[0].compTime = 1;
         //    task_info[0].period = 4;
@@ -145,12 +149,12 @@ void main_blinky( void )
         //    task_info[2].compTime = 2;
         //    task_info[2].period = 10;
 
+        xTaskCreate( Task2, "Task2", configMINIMAL_STACK_SIZE, (void *)&task_info[1], 2, NULL );
 	    xTaskCreate( Task1, "Task1", configMINIMAL_STACK_SIZE, (void *)&task_info[0], 1, NULL );
-	    xTaskCreate( Task2, "Task2", configMINIMAL_STACK_SIZE, (void *)&task_info[1], 2, NULL );
-
+	    printf("after create\n");
 		/* Start the tasks and timer running. */
 		vTaskStartScheduler();
-	}
+//	}
 
 	/* If all is well, the scheduler will now be running, and the following
 	line will never be reached.  If the following line does execute, then
@@ -162,61 +166,126 @@ void main_blinky( void )
 }
 
 
-/*-----------------------------------------------------------*/
 
-/*-----------------------------------------------------------*/
 
-static void prvQueueSendTask( void *pvParameters )
+void Task1( void *pvParameters )
 {
-TickType_t xNextWakeTime;
-const unsigned long ulValueToSend = 100UL;
+    /* Remove compiler warning about unused parameter. */
+    ( void ) pvParameters;
 
-	/* Remove compiler warning about unused parameter. */
-	( void ) pvParameters;
+    int start;
+    int end;
+    int toDelay;
 
-	/* Initialise xNextWakeTime - this only needs to be done once. */
-	xNextWakeTime = xTaskGetTickCount();
+    TASK_INFO *taskInfo = (TASK_INFO *)pvParameters;
 
-	for( ;; )
-	{
-		/* Place this task in the blocked state until it is time to run again. */
-		vTaskDelayUntil( &xNextWakeTime, mainQUEUE_SEND_FREQUENCY_MS );
+    taskENTER_CRITICAL();
+    setTCB(taskInfo->compTime, taskInfo->period);
+    taskEXIT_CRITICAL();
 
-		/* Send to the queue - causing the queue receive task to unblock and
-		toggle the LED.  0 is used as the block time so the sending operation
-		will not block - it shouldn't need to block as the queue should always
-		be empty at this point in the code. */
-		xQueueSend( xQueue, &ulValueToSend, 0U );
-	}
+    start = xTaskGetTickCount();
+
+    /* Initialise xNextWakeTime - this only needs to be done once. */
+//    xNextWakeTime = xTaskGetTickCount();
+
+    for( ;; )
+    {
+        PrintBuffer(); // T1
+
+        while (getC() > 0) {
+            /* Computing */
+        }
+        end = xTaskGetTickCount();
+        int p = getP();
+        toDelay = p - (end - start);
+
+        taskENTER_CRITICAL();
+
+        start = start + p;      // Next start time
+        setC(taskInfo->compTime); // Reset the counter
+        setD(start + p);
+
+        taskEXIT_CRITICAL();
+
+//        if (toDelay < 0) {
+//            sprintf(&CxtSwBuf[CxtSwBufIndex++], "%5d\t Task%d exceed the deadline.\n",
+//                    ((int)(start / getP()) + 1) * getP(), getPri());
+//        }
+        //printf("%d 1 complete \n", xTaskGetTickCount());
+
+       sprintf(&CxtSwBuf[CxtSwBufIndex++], "%d C %d %d\n", (int)end, (int)1, (int)2);
+
+        vTaskDelay(toDelay);
+
+    }
+}
+
+
+void Task2( void *pvParameters )
+{
+
+    /* Remove compiler warning about unused parameter. */
+    ( void ) pvParameters;
+
+    int start;
+    int end;
+    int toDelay;
+
+    TASK_INFO *taskInfo = (TASK_INFO *)pvParameters;
+
+    taskENTER_CRITICAL();
+    setTCB(taskInfo->compTime, taskInfo->period);
+    taskEXIT_CRITICAL();
+
+    start = xTaskGetTickCount();
+
+    /* Initialise xNextWakeTime - this only needs to be done once. */
+//    xNextWakeTime = xTaskGetTickCount();
+
+    for( ;; )
+    {
+        PrintBuffer(); // T2
+
+            while (getC() > 0) {
+                /* Computing */
+            }
+            end = xTaskGetTickCount();
+
+            int p = getP();
+            toDelay = p - (end - start);
+
+            taskENTER_CRITICAL();
+
+            start = start + p;      // Next start time
+            setC(taskInfo->compTime); // Reset the counter
+            setD(start + p);
+
+            taskEXIT_CRITICAL();
+
+//            if (toDelay < 0) {
+//                sprintf(&CxtSwBuf[CxtSwBufIndex++], "%5d\t Task%d exceed the deadline.\n",
+//                        ((int)(start / getP()) + 1) * getP(), getPri());
+//            }
+
+            sprintf(&CxtSwBuf[CxtSwBufIndex++], "%d C %d %d\n",
+                        (int)end, (int)1, (int)2);
+            vTaskDelay(toDelay);
+
+    }
 }
 /*-----------------------------------------------------------*/
 
-static void prvQueueReceiveTask( void *pvParameters )
-{
-unsigned long ulReceivedValue;
-const unsigned long ulExpectedValue = 100UL;
+void PrintBuffer() {
+    static int i = 0;
 
-	/* Remove compiler warning about unused parameter. */
-	( void ) pvParameters;
+    for (; i < CxtSwBufIndex; i++)
+        printf("%s", CxtSwBuf[i]);
 
-	for( ;; )
-	{
-		/* Wait until something arrives in the queue - this task will block
-		indefinitely provided INCLUDE_vTaskSuspend is set to 1 in
-		FreeRTOSConfig.h. */
-		xQueueReceive( xQueue, &ulReceivedValue, portMAX_DELAY );
+    if (i > MAX_BUF_AMOUNT) {
+        printf("out\n");
+    }
 
-		/*  To get here something must have been received from the queue, but
-		is it the expected value?  If it is, toggle the LED. */
-		if( ulReceivedValue == ulExpectedValue )
-		{
-			vParTestToggleLED( mainTASK_LED );
-			ulReceivedValue = 0U;
-		}
-	}
 }
 /*-----------------------------------------------------------*/
-
-
-
+/*-----------------------------------------------------------*/
 
